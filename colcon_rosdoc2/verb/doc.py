@@ -10,13 +10,20 @@ from colcon_core.package_selection import add_arguments as add_packages_argument
 from colcon_core.package_decorator import PackageDecorator, PackageDescriptor
 from colcon_core.executor import execute_jobs
 from pathlib import Path
-import subprocess
 from colcon_core.verb import logger
 from colcon_core.task import get_task_extension, TaskContext
 import os
 from colcon_core.executor import Job
 from colcon_core.executor import add_executor_arguments
 from colcon_core.event_handler import add_event_handler_arguments
+from colcon_core.package_identification.ignore import IGNORE_MARKER
+
+
+def ignore_dir(directory: Path):
+    ignore_marker = directory / IGNORE_MARKER
+    if not os.path.lexists(str(ignore_marker)):
+        with ignore_marker.open("w"):
+            pass
 
 
 class DocVerb(VerbExtensionPoint):
@@ -82,6 +89,11 @@ class DocVerb(VerbExtensionPoint):
             )
 
             jobs[pkg.name] = job
+
+        doc_build_dir = Path("build_doc")
+        output_dir = Path("install_doc")
+        ignore_dir(doc_build_dir)
+        ignore_dir(output_dir)
 
         execute_jobs(context, jobs)
         return 0
